@@ -1,0 +1,1335 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#FF7210">
+<title>기술의 빈틈 찾기 | 관리자</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  --primary: #FF7210;
+  --primary-dark: #e65f00;
+  --bg: #f5f6f8;
+  --text: #20242b;
+  --muted: #737b87;
+  --border: #e7e9ed;
+  --white: #fff;
+  --red: #dc3545;
+  --green: #16834a;
+  --blue: #2864c8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Pretendard, "Noto Sans KR", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+header {
+  height: 68px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#adminName {
+  color: var(--muted);
+  font-size: 13px;
+}
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 15px;
+  font-weight: 700;
+}
+.primary-btn {
+  background: var(--primary);
+  color: white;
+}
+.primary-btn:hover { background: var(--primary-dark); }
+.gray-btn {
+  background: #edf0f3;
+  color: #424a55;
+}
+.red-btn {
+  background: #fff0f0;
+  color: var(--red);
+}
+.green-btn {
+  background: #eaf7ef;
+  color: var(--green);
+}
+.blue-btn {
+  background: #edf3ff;
+  color: var(--blue);
+}
+main {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 30px 22px 70px;
+}
+.page-title {
+  margin-bottom: 24px;
+}
+.page-title h1 {
+  font-size: 26px;
+  margin: 0 0 7px;
+}
+.page-title p {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 25px;
+}
+.stat-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+.stat-card span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.stat-card strong {
+  font-size: 28px;
+}
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.panel-heading h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.tab-btn {
+  background: #edf0f3;
+  color: #525b67;
+}
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+}
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.filters input, .filters select {
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+.filters input { flex: 1; min-width: 180px; }
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+}
+th, td {
+  padding: 13px 11px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 13px;
+}
+th {
+  color: var(--muted);
+  background: #fafbfc;
+  font-weight: 700;
+}
+td .sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff3e9;
+  color: #c65a08;
+  white-space: nowrap;
+}
+.status.approved {
+  background: #eaf7ef;
+  color: var(--green);
+}
+.status.rejected {
+  background: #fff0f0;
+  color: var(--red);
+}
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.actions button {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 45px 10px;
+}
+.login-wrap {
+  min-height: calc(100vh - 68px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 34px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,.05);
+}
+.login-card h1 {
+  font-size: 23px;
+  margin: 0 0 8px;
+}
+.login-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+.field { margin-bottom: 15px; }
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.field input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline-color: var(--primary);
+}
+.login-card button { width: 100%; margin-top: 8px; }
+#errorBox {
+  color: var(--red);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 13px;
+}
+.detail {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.detail-item {
+  background: #f7f8fa;
+  padding: 13px;
+  border-radius: 9px;
+}
+.detail-item small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.detail-item div {
+  font-size: 14px;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,25,32,.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  z-index: 30;
+}
+.modal.show { display: flex; }
+.modal-card {
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 15px;
+  padding: 23px;
+}
+.modal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.modal-heading h2 { margin: 0; font-size: 19px; }
+.modal-close {
+  background: #edf0f3;
+  padding: 7px 11px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+#toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #20242b;
+  color: white;
+  border-radius: 9px;
+  padding: 12px 18px;
+  font-size: 13px;
+  display: none;
+  z-index: 50;
+  max-width: 90%;
+}
+#toast.show { display: block; }
+.hidden { display: none !important; }
+@media(max-width: 850px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 550px) {
+  header { padding: 0 14px; }
+  .brand { font-size: 14px; }
+  #adminName { display: none; }
+  main { padding: 22px 13px 50px; }
+  .stats { gap: 9px; }
+  .stat-card { padding: 15px; }
+  .stat-card strong { font-size: 23px; }
+  .panel { padding: 15px; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.brand img {
+  display: block;
+  width: 220px;
+  height: 65px;
+  object-fit: contain;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .brand img {
+    width: 160px;
+    height: 55px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="index.html" class="brand">
+    <img src="logo.png" alt="프로젝트 로고"
+      onerror="this.style.display='none'">
+  </a>
+
+  <div class="header-right">
+    <span id="adminName"></span>
+    <button id="logoutBtn" class="gray-btn hidden"
+      onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<section id="loginSection" class="login-wrap">
+  <div class="login-card">
+    <h1>관리자 로그인</h1>
+    <p>
+      등록된 관리자 계정으로 로그인할 수 있습니다.
+      관리자 권한이 없는 계정은 관리 페이지에 접근할 수 없습니다.
+    </p>
+
+    <form id="loginForm">
+      <div class="field">
+  <label for="adminId">관리자 ID</label>
+  <input
+    id="adminId"
+    type="text"
+    placeholder="관리자 ID"
+    autocomplete="username"
+    required
+  >
+</div>
+
+<div class="field">
+  <label for="password">비밀번호</label>
+  <input
+    id="password"
+    type="password"
+    placeholder="관리자 비밀번호"
+    autocomplete="current-password"
+    required
+  >
+</div>
+      <button class="primary-btn" type="submit" id="loginBtn">
+        로그인
+      </button>
+    </form>
+    <div id="errorBox"></div>
+  </div>
+</section>
+
+<main id="adminSection" class="hidden">
+  <div class="page-title">
+    <h1>관리자 대시보드</h1>
+    <p>시민 제보와 기술 제안을 검토하고 AI 분석 결과를 관리합니다.</p>
+  </div>
+
+  <section class="stats">
+    <div class="stat-card">
+      <span>검토 대기 제보</span>
+      <strong id="statReports">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>검토 대기 기술 제안</span>
+      <strong id="statIdeas">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>승인된 제보</span>
+      <strong id="statReportsApproved">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>승인된 기술 제안</span>
+      <strong id="statIdeasApproved">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>AI 분석 검토 대기</span>
+      <strong id="statAnalyses">0</strong>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>자료 관리</h2>
+      <button class="gray-btn" onclick="refreshCurrent()">
+        <span id="refreshText">새로고침</span>
+      </button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="reports"
+        onclick="switchTab('reports')">생활기술 제보</button>
+      <button class="tab-btn" data-tab="ideas"
+        onclick="switchTab('ideas')">미래 기술 제안</button>
+      <button class="tab-btn" data-tab="analyses"
+        onclick="switchTab('analyses')">AI 분석 검토</button>
+    </div>
+
+    <div class="filters">
+      <input id="searchInput" type="search"
+        placeholder="제목, 지역, 분야 검색"
+        oninput="renderCurrent()">
+      <select id="statusFilter" onchange="renderCurrent()">
+        <option value="">전체 상태</option>
+        <option value="검토 중">검토 중</option>
+        <option value="승인">승인</option>
+        <option value="반려">반려</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td class="empty">자료를 불러오는 중입니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="detailModal" onclick="modalBackground(event)">
+  <div class="modal-card">
+    <div class="modal-heading">
+      <h2 id="detailTitle">상세 정보</h2>
+      <button class="modal-close" onclick="closeModal()">닫기</button>
+    </div>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="gray-btn" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// =============================================
+// Supabase 설정
+// =============================================
+
+const SUPABASE_URL = "https://xudiglumqhythwhjizyh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1ZGlnbHVtcWh5dGh3aGppenloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNDQyNTQsImV4cCI6MjEwODYyMDI1NH0.I2OGouuR-TFjXsteUTOunjeWf__DIhGy69NFQ94KFs8";
+
+// =============================================
+// 상태
+// =============================================
+
+let currentTab = "reports";
+let reports = [];
+let ideas = [];
+let analyses = [];
+let currentAdmin = null;
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("ko-KR");
+}
+
+function toast(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+  setTimeout(() => $("toast").classList.remove("show"), 2800);
+}
+
+function setError(message = "") {
+  $("errorBox").textContent = message;
+}
+
+// =====================================================
+// 기술의 빈틈 찾기 프로젝트 - 관리자 페이지 스크립트
+// ID/PW 관리자 인증 방식
+// =====================================================
+
+// -----------------------------------------------------
+// 1. 관리자 인증 설정
+// -----------------------------------------------------
+
+const ADMIN_TOKEN_KEY = "techGapAdminToken";
+
+// 아래 두 값은 기존 프로젝트의 실제 설정을 사용해야 함
+// SUPABASE_URL
+// SUPABASE_ANON_KEY
+
+// -----------------------------------------------------
+// 2. 관리자 토큰 관리
+// -----------------------------------------------------
+
+function getAdminToken() {
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY);
+}
+
+// -----------------------------------------------------
+// 3. Edge Function 호출
+// -----------------------------------------------------
+
+async function callAdmin(action, extra = {}) {
+  const token = getAdminToken();
+
+  if (action !== "login" && !token) {
+    throw new Error("관리자 로그인이 필요합니다.");
+  }
+
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/tech-gap-admin`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${token || SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        action,
+        ...extra
+      })
+    }
+  );
+
+  let data;
+
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error("서버 응답을 읽을 수 없습니다.");
+  }
+
+  if (!response.ok || data?.error) {
+    throw new Error(
+      data?.error || `서버 요청 실패 (${response.status})`
+    );
+  }
+
+  return data;
+}
+
+// -----------------------------------------------------
+// 4. 관리자 로그인
+// -----------------------------------------------------
+
+$("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  setError("");
+
+  const adminId = $("adminId").value.trim();
+  const password = $("password").value;
+  const loginButton = $("loginBtn");
+
+  if (!adminId || !password) {
+    setError("관리자 ID와 비밀번호를 입력해 주세요.");
+    return;
+  }
+
+  loginButton.disabled = true;
+  loginButton.textContent = "인증 중...";
+
+  try {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    const result = await callAdmin("login", {
+      adminId,
+      password
+    });
+
+    if (!result?.token) {
+      throw new Error("관리자 인증 토큰을 발급받지 못했습니다.");
+    }
+
+    sessionStorage.setItem(
+      ADMIN_TOKEN_KEY,
+      result.token
+    );
+
+    $("password").value = "";
+
+    await verifyAdminAndLoad();
+
+    toast("관리자 로그인에 성공했습니다.");
+
+  } catch (error) {
+    console.error("관리자 로그인 오류:", error);
+
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    currentAdmin = null;
+
+    $("adminSection").classList.add("hidden");
+    $("loginSection").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+
+    $("password").value = "";
+
+    setError(
+      error.message || "관리자 로그인에 실패했습니다."
+    );
+
+  } finally {
+    loginButton.disabled = false;
+    loginButton.textContent = "로그인";
+  }
+});
+
+// -----------------------------------------------------
+// 5. 관리자 인증 및 대시보드 표시
+// -----------------------------------------------------
+
+async function verifyAdminAndLoad() {
+  if (!getAdminToken()) {
+    throw new Error("관리자 로그인이 필요합니다.");
+  }
+
+  try {
+    const result = await callAdmin("dashboard");
+
+    currentAdmin = result.adminName || "관리자";
+
+    $("adminName").textContent = currentAdmin + "님";
+
+    $("loginSection").classList.add("hidden");
+    $("adminSection").classList.remove("hidden");
+    $("logoutBtn").classList.remove("hidden");
+
+    await loadDashboard();
+    await loadAllData();
+
+  } catch (error) {
+    console.error("관리자 인증 오류:", error);
+
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    currentAdmin = null;
+
+    $("adminSection").classList.add("hidden");
+    $("loginSection").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+
+    throw error;
+  }
+}
+
+// -----------------------------------------------------
+// 6. 로그아웃
+// -----------------------------------------------------
+
+async function logout() {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+  currentAdmin = null;
+
+  reports = [];
+  ideas = [];
+  analyses = [];
+
+  $("adminSection").classList.add("hidden");
+  $("loginSection").classList.remove("hidden");
+  $("logoutBtn").classList.add("hidden");
+
+  $("adminName").textContent = "";
+  $("adminId").value = "";
+  $("password").value = "";
+
+  $("tableHead").innerHTML = "";
+  $("tableBody").innerHTML = "";
+
+  setError("");
+
+  toast("로그아웃되었습니다.");
+}
+
+// -----------------------------------------------------
+// 7. 기존 관리자 세션 확인
+// -----------------------------------------------------
+
+async function checkExistingSession() {
+  if (!getAdminToken()) {
+    $("loginSection").classList.remove("hidden");
+    $("adminSection").classList.add("hidden");
+    $("logoutBtn").classList.add("hidden");
+    return;
+  }
+
+  try {
+    await verifyAdminAndLoad();
+
+  } catch (error) {
+    console.error("기존 세션 확인 실패:", error);
+
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    $("loginSection").classList.remove("hidden");
+    $("adminSection").classList.add("hidden");
+    $("logoutBtn").classList.add("hidden");
+  }
+}
+
+// -----------------------------------------------------
+// 8. 대시보드 통계 불러오기
+// -----------------------------------------------------
+
+async function loadDashboard() {
+  const result = await callAdmin("dashboard");
+  const stats = result.stats || {};
+
+  $("statReports").textContent =
+    stats.reportsPending ?? 0;
+
+  $("statIdeas").textContent =
+    stats.ideasPending ?? 0;
+
+  $("statReportsApproved").textContent =
+    stats.reportsApproved ?? 0;
+
+  $("statIdeasApproved").textContent =
+    stats.ideasApproved ?? 0;
+
+  $("statAnalyses").textContent =
+    stats.analysesPending ?? 0;
+}
+
+// -----------------------------------------------------
+// 9. 전체 자료 불러오기
+// -----------------------------------------------------
+
+async function loadAllData() {
+  const [reportResult, ideaResult, analysisResult] =
+    await Promise.all([
+      callAdmin("list_reports"),
+      callAdmin("list_ideas"),
+      callAdmin("list_analyses")
+    ]);
+
+  reports = reportResult.data || [];
+  ideas = ideaResult.data || [];
+  analyses = analysisResult.data || [];
+
+  renderCurrent();
+}
+
+// -----------------------------------------------------
+// 10. 새로고침
+// -----------------------------------------------------
+
+async function refreshCurrent() {
+  $("refreshText").textContent = "불러오는 중...";
+
+  try {
+    await loadDashboard();
+    await loadAllData();
+
+    toast("자료를 새로고침했습니다.");
+
+  } catch (error) {
+    toast("새로고침 실패: " + error.message);
+
+  } finally {
+    $("refreshText").textContent = "새로고침";
+  }
+}
+
+// -----------------------------------------------------
+// 11. 탭 전환
+// -----------------------------------------------------
+
+function switchTab(tab) {
+  currentTab = tab;
+
+  document.querySelectorAll(".tab-btn").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.tab === tab
+    );
+  });
+
+  $("statusFilter").classList.toggle(
+    "hidden",
+    tab === "analyses"
+  );
+
+  $("statusFilter").value = "";
+  $("searchInput").value = "";
+
+  renderCurrent();
+}
+
+function getCurrentData() {
+  if (currentTab === "reports") return reports;
+  if (currentTab === "ideas") return ideas;
+  return analyses;
+}
+
+// -----------------------------------------------------
+// 12. 상태 표시
+// -----------------------------------------------------
+
+function getStatusClass(status) {
+  if (status === "승인" || status === "검토 완료") {
+    return "approved";
+  }
+
+  if (status === "반려" || status === "재분석 필요") {
+    return "rejected";
+  }
+
+  return "";
+}
+
+// -----------------------------------------------------
+// 13. 현재 목록 렌더링
+// -----------------------------------------------------
+
+function renderCurrent() {
+  const data = getCurrentData();
+
+  const keyword = $("searchInput").value
+    .trim()
+    .toLowerCase();
+
+  const status = $("statusFilter").value;
+
+  const filtered = data.filter((item) => {
+    const text = [
+      item.title,
+      item.region,
+      item.category,
+      item.summary,
+      item.issue_type,
+      item.technology_demand
+    ].join(" ").toLowerCase();
+
+    const matchesKeyword =
+      !keyword || text.includes(keyword);
+
+    const itemStatus =
+      currentTab === "analyses"
+        ? item.analysis_status
+        : item.status;
+
+    const matchesStatus =
+      !status || itemStatus === status;
+
+    return matchesKeyword && matchesStatus;
+  });
+
+  if (currentTab === "reports") {
+    renderReports(filtered);
+  } else if (currentTab === "ideas") {
+    renderIdeas(filtered);
+  } else {
+    renderAnalyses(filtered);
+  }
+}
+
+// -----------------------------------------------------
+// 14. 제보 목록
+// -----------------------------------------------------
+
+function renderReports(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>제보 제목</th>
+      <th>지역</th>
+      <th>분야</th>
+      <th>제보 유형</th>
+      <th>상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td><strong>${escapeHTML(item.title)}</strong></td>
+        <td>${escapeHTML(item.region || "-")}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>${escapeHTML(item.report_type || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.status)}">
+            ${escapeHTML(item.status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('report','${escapeHTML(item.id)}')">
+              상세
+            </button>
+            ${postActionButtons("report", item)}
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="7" class="empty">등록된 제보가 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 15. 기술 제안 목록
+// -----------------------------------------------------
+
+function renderIdeas(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>제안 제목</th>
+      <th>지역</th>
+      <th>분야</th>
+      <th>상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td><strong>${escapeHTML(item.title)}</strong></td>
+        <td>${escapeHTML(item.region || "-")}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.status)}">
+            ${escapeHTML(item.status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('idea','${escapeHTML(item.id)}')">
+              상세
+            </button>
+            ${postActionButtons("idea", item)}
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="6" class="empty">등록된 기술 제안이 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 16. AI 분석 목록
+// -----------------------------------------------------
+
+function renderAnalyses(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>대상 유형</th>
+      <th>AI 요약</th>
+      <th>분류</th>
+      <th>분석 상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td>${escapeHTML(item.target_type || "-")}</td>
+        <td>${escapeHTML(item.summary || "-").slice(0, 75)}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.analysis_status)}">
+            ${escapeHTML(item.analysis_status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('analysis','${escapeHTML(item.id)}')">
+              상세
+            </button>
+
+            <button class="green-btn"
+              onclick="reviewAnalysis('${escapeHTML(item.id)}','검토 완료')">
+              검토 완료
+            </button>
+
+            <button class="red-btn"
+              onclick="reviewAnalysis('${escapeHTML(item.id)}','재분석 필요')">
+              재분석
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="6" class="empty">AI 분석 기록이 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 17. 제보 및 제안 관리 버튼
+// -----------------------------------------------------
+
+function postActionButtons(type, item) {
+  if (item.status === "검토 중") {
+    return `
+      <button class="green-btn"
+        onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','승인')">
+        승인
+      </button>
+
+      <button class="red-btn"
+        onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','반려')">
+        반려
+      </button>
+    `;
+  }
+
+  return `
+    <button class="gray-btn"
+      onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','검토 중')">
+      재검토
+    </button>
+  `;
+}
+
+// -----------------------------------------------------
+// 18. 게시물 상태 변경
+// -----------------------------------------------------
+
+async function updatePostStatus(type, id, status) {
+  const typeName =
+    type === "report" ? "제보" : "기술 제안";
+
+  if (!confirm(
+    `${typeName} 상태를 '${status}'(으)로 변경할까요?`
+  )) {
+    return;
+  }
+
+  try {
+    await callAdmin("update_post_status", {
+      type,
+      id,
+      status
+    });
+
+    toast("상태가 변경되었습니다.");
+
+    await loadDashboard();
+    await loadAllData();
+
+  } catch (error) {
+    toast("상태 변경 실패: " + error.message);
+  }
+}
+
+// -----------------------------------------------------
+// 19. AI 분석 검토
+// -----------------------------------------------------
+
+async function reviewAnalysis(id, status) {
+  const message =
+    status === "검토 완료"
+      ? "이 AI 분석 결과를 검토 완료 처리할까요?"
+      : "이 분석을 재분석 대상으로 표시할까요?";
+
+  if (!confirm(message)) return;
+
+  try {
+    await callAdmin("review_analysis", {
+      id,
+      status
+    });
+
+    toast("AI 분석 상태가 변경되었습니다.");
+
+    await loadDashboard();
+    await loadAllData();
+
+  } catch (error) {
+    toast("변경 실패: " + error.message);
+  }
+}
+
+// -----------------------------------------------------
+// 20. 상세 정보 필드
+// -----------------------------------------------------
+
+function detailField(label, value) {
+  return `
+    <div class="detail-item">
+      <small>${escapeHTML(label)}</small>
+      <div class="detail">
+        ${escapeHTML(value ?? "-")}
+      </div>
+    </div>
+  `;
+}
+
+// -----------------------------------------------------
+// 21. 상세 정보 모달
+// -----------------------------------------------------
+
+function showDetail(type, id) {
+  let item;
+
+  if (type === "report") {
+    item = reports.find(
+      (x) => String(x.id) === String(id)
+    );
+  } else if (type === "idea") {
+    item = ideas.find(
+      (x) => String(x.id) === String(id)
+    );
+  } else {
+    item = analyses.find(
+      (x) => String(x.id) === String(id)
+    );
+  }
+
+  if (!item) {
+    toast("자료를 찾을 수 없습니다.");
+    return;
+  }
+
+  let fields = "";
+
+  if (type === "report") {
+    $("detailTitle").textContent = "생활기술 제보 상세";
+
+    fields = [
+      detailField("제목", item.title),
+      detailField("지역", item.region),
+      detailField("분야", item.category),
+      detailField("제보 유형", item.report_type),
+      detailField("문제 상황", item.situation),
+      detailField("기존 기술 및 서비스", item.existing_technology),
+      detailField("개선 필요 사항", item.improvement),
+      detailField("공개 여부", item.is_public ? "공개" : "비공개"),
+      detailField("상태", item.status),
+      detailField("등록일", formatDate(item.created_at))
+    ].join("");
+
+    if (item.image_url) {
+      fields += `
+        <div class="detail-item" style="margin-top:13px">
+          <small>첨부 이미지</small>
+          <img
+            src="${escapeHTML(item.image_url)}"
+            alt="제보 첨부 이미지"
+            style="max-width:100%;max-height:300px;object-fit:contain"
+          >
+        </div>
+      `;
+    }
+
+  } else if (type === "idea") {
+    $("detailTitle").textContent = "미래 기술 제안 상세";
+
+    fields = [
+      detailField("제목", item.title),
+      detailField("지역", item.region),
+      detailField("분야", item.category),
+      detailField("문제 상황", item.problem_description),
+      detailField("기술 개념", item.technology_concept),
+      detailField("기대 효과", item.expected_effect),
+      detailField("상태", item.status),
+      detailField("등록일", formatDate(item.created_at))
+    ].join("");
+
+  } else {
+    $("detailTitle").textContent = "AI 분석 상세";
+
+    fields = [
+      detailField("분석 대상 유형", item.target_type),
+      detailField("대상 ID", item.target_id),
+      detailField("분야", item.category),
+      detailField("문제 유형", item.issue_type),
+      detailField("AI 요약", item.summary),
+      detailField("유사 제보 그룹", item.similar_group),
+      detailField("기술 수요", item.technology_demand),
+      detailField(
+        "권고 사항",
+        JSON.stringify(item.recommendations || [], null, 2)
+      ),
+      detailField("신뢰도", item.confidence),
+      detailField("사용 모델", item.model),
+      detailField("검토 상태", item.analysis_status),
+      detailField("분석일", formatDate(item.created_at))
+    ].join("");
+  }
+
+  $("detailContent").innerHTML =
+    `<div class="detail-grid">${fields}</div>`;
+
+  $("detailModal").classList.add("show");
+}
+
+// -----------------------------------------------------
+// 22. 모달 제어
+// -----------------------------------------------------
+
+function closeModal() {
+  $("detailModal").classList.remove("show");
+}
+
+function modalBackground(event) {
+  if (event.target.id === "detailModal") {
+    closeModal();
+  }
+}
+
+// -----------------------------------------------------
+// 23. 검색 및 필터 이벤트
+// -----------------------------------------------------
+
+$("searchInput").addEventListener("input", renderCurrent);
+$("statusFilter").addEventListener("change", renderCurrent);
+
+// -----------------------------------------------------
+// 24. 페이지 초기화
+// -----------------------------------------------------
+
+checkExistingSession();
+</script>
+</body>
+</html>
