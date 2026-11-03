@@ -1,0 +1,1590 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#FF7210">
+<title>기술의 빈틈 찾기 | 관리자</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  --primary: #FF7210;
+  --primary-dark: #e65f00;
+  --bg: #f5f6f8;
+  --text: #20242b;
+  --muted: #737b87;
+  --border: #e7e9ed;
+  --white: #fff;
+  --red: #dc3545;
+  --green: #16834a;
+  --blue: #2864c8;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Pretendard, "Noto Sans KR", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+header {
+  height: 68px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#adminName {
+  color: var(--muted);
+  font-size: 13px;
+}
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 15px;
+  font-weight: 700;
+}
+.primary-btn {
+  background: var(--primary);
+  color: white;
+}
+.primary-btn:hover { background: var(--primary-dark); }
+.gray-btn {
+  background: #edf0f3;
+  color: #424a55;
+}
+.red-btn {
+  background: #fff0f0;
+  color: var(--red);
+}
+.green-btn {
+  background: #eaf7ef;
+  color: var(--green);
+}
+.blue-btn {
+  background: #edf3ff;
+  color: var(--blue);
+}
+main {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 30px 22px 70px;
+}
+.page-title {
+  margin-bottom: 24px;
+}
+.page-title h1 {
+  font-size: 26px;
+  margin: 0 0 7px;
+}
+.page-title p {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 25px;
+}
+.stat-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+.stat-card span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.stat-card strong {
+  font-size: 28px;
+}
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.panel-heading h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.tab-btn {
+  background: #edf0f3;
+  color: #525b67;
+}
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+}
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.filters input, .filters select {
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+.filters input { flex: 1; min-width: 180px; }
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+}
+th, td {
+  padding: 13px 11px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 13px;
+}
+th {
+  color: var(--muted);
+  background: #fafbfc;
+  font-weight: 700;
+}
+td .sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff3e9;
+  color: #c65a08;
+  white-space: nowrap;
+}
+.status.approved {
+  background: #eaf7ef;
+  color: var(--green);
+}
+.status.rejected {
+  background: #fff0f0;
+  color: var(--red);
+}
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.actions button {
+  padding: 7px 9px;
+  font-size: 12px;
+}
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 45px 10px;
+}
+.login-wrap {
+  min-height: calc(100vh - 68px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 34px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,.05);
+}
+.login-card h1 {
+  font-size: 23px;
+  margin: 0 0 8px;
+}
+.login-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+.field { margin-bottom: 15px; }
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.field input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline-color: var(--primary);
+}
+.login-card button { width: 100%; margin-top: 8px; }
+#errorBox {
+  color: var(--red);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 13px;
+}
+.detail {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.detail-item {
+  background: #f7f8fa;
+  padding: 13px;
+  border-radius: 9px;
+}
+.detail-item small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.detail-item div {
+  font-size: 14px;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,25,32,.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  z-index: 30;
+}
+.modal.show { display: flex; }
+.modal-card {
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 15px;
+  padding: 23px;
+}
+.modal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.modal-heading h2 { margin: 0; font-size: 19px; }
+.modal-close {
+  background: #edf0f3;
+  padding: 7px 11px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+#toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #20242b;
+  color: white;
+  border-radius: 9px;
+  padding: 12px 18px;
+  font-size: 13px;
+  display: none;
+  z-index: 50;
+  max-width: 90%;
+}
+#toast.show { display: block; }
+.hidden { display: none !important; }
+@media(max-width: 850px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 550px) {
+  header { padding: 0 14px; }
+  .brand { font-size: 14px; }
+  #adminName { display: none; }
+  main { padding: 22px 13px 50px; }
+  .stats { gap: 9px; }
+  .stat-card { padding: 15px; }
+  .stat-card strong { font-size: 23px; }
+  .panel { padding: 15px; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.brand img {
+  display: block;
+  width: 220px;
+  height: 65px;
+  object-fit: contain;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .brand img {
+    width: 160px;
+    height: 55px;
+  }
+}
+
+/* 설문 결과 통계 */
+.survey-analytics { margin: 18px 0 22px; }
+.survey-analytics-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.survey-analytics-header h3 { margin:0; font-size:18px; }
+.survey-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:16px; }
+.survey-summary-card { border:1px solid var(--border); background:#fff; border-radius:11px; padding:13px 15px; }
+.survey-summary-card span { display:block; color:var(--muted); font-size:12px; margin-bottom:6px; }
+.survey-summary-card strong { font-size:23px; }
+.survey-question-chart { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0; }
+.survey-question-chart h4 { margin:0 0 5px; font-size:15px; line-height:1.5; }
+.survey-question-meta { color:var(--muted); font-size:12px; margin-bottom:13px; }
+.survey-bar-row { display:grid; grid-template-columns:minmax(110px, 1fr) minmax(100px, 2fr) 72px; gap:10px; align-items:center; margin:10px 0; font-size:13px; }
+.survey-bar-label { overflow-wrap:anywhere; }
+.survey-bar-track { height:12px; background:#eef0f3; border-radius:99px; overflow:hidden; }
+.survey-bar-fill { height:100%; background:var(--primary); border-radius:99px; min-width:0; }
+.survey-bar-value { text-align:right; color:#4b5563; font-variant-numeric:tabular-nums; }
+.survey-text-answer { background:#f7f8fa; border-radius:8px; padding:10px 12px; margin:7px 0; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+.survey-empty { color:var(--muted); font-size:13px; padding:12px 0; }
+@media(max-width:600px) { .survey-bar-row { grid-template-columns:1fr 1.3fr 58px; gap:6px; font-size:12px; } .survey-question-chart { padding:12px; } }
+
+.survey-admin-list{display:grid;gap:12px;margin-top:12px}.survey-admin-card{border:1px solid #e4e7eb;border-radius:12px;padding:16px;background:#fff}.survey-admin-card h3{margin:0 0 7px;font-size:16px}.survey-admin-card p{margin:5px 0;color:#667085;font-size:13px;line-height:1.55}.survey-editor{display:grid;gap:12px;padding:18px;border:1px solid #e4e7eb;border-radius:12px;background:#fafbfc}.survey-editor label{display:grid;gap:6px;font-size:13px;font-weight:700}.survey-editor input,.survey-editor textarea{width:100%;padding:11px;border:1px solid #d5dae1;border-radius:8px;font:inherit;background:#fff}.survey-editor textarea{min-height:90px}.survey-date-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.survey-response-group{border:1px solid #e4e7eb;border-radius:10px;padding:12px;margin:10px 0}.survey-response-group summary{cursor:pointer;font-weight:700}.survey-response-item{margin-top:12px;padding:12px;background:#f7f8fa;border-radius:8px}.survey-response-item p{margin:7px 0;font-size:13px;white-space:pre-wrap}.hint{font-size:12px;color:#667085;line-height:1.5}@media(max-width:650px){.survey-date-grid{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="index.html" class="brand">
+    <img src="logo.png" alt="프로젝트 로고"
+      onerror="this.style.display='none'">
+  </a>
+
+  <div class="header-right">
+    <span id="adminName"></span>
+    <button id="logoutBtn" class="gray-btn hidden"
+      onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<section id="loginSection" class="login-wrap">
+  <div class="login-card">
+    <h1>관리자 로그인</h1>
+    <p>
+      등록된 관리자 계정으로 로그인할 수 있습니다.
+      관리자 권한이 없는 계정은 관리 페이지에 접근할 수 없습니다.
+    </p>
+
+    <form id="loginForm">
+      <div class="field">
+  <label for="adminId">관리자 ID</label>
+  <input
+    id="adminId"
+    type="text"
+    placeholder="관리자 ID"
+    autocomplete="username"
+    required
+  >
+</div>
+
+<div class="field">
+  <label for="password">비밀번호</label>
+  <input
+    id="password"
+    type="password"
+    placeholder="관리자 비밀번호"
+    autocomplete="current-password"
+    required
+  >
+</div>
+      <button class="primary-btn" type="submit" id="loginBtn">
+        로그인
+      </button>
+    </form>
+    <div id="errorBox"></div>
+  </div>
+</section>
+
+<main id="adminSection" class="hidden">
+  <div class="page-title">
+    <h1>관리자 대시보드</h1>
+    <p>시민 제보와 기술 제안을 검토하고 AI 분석 결과를 관리합니다.</p>
+  </div>
+
+  <section class="stats">
+    <div class="stat-card">
+      <span>검토 대기 제보</span>
+      <strong id="statReports">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>검토 대기 기술 제안</span>
+      <strong id="statIdeas">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>승인된 제보</span>
+      <strong id="statReportsApproved">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>승인된 기술 제안</span>
+      <strong id="statIdeasApproved">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>검토 대기 설문 의뢰</span>
+      <strong id="statSurveyRequests">0</strong>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>자료 관리</h2>
+      <button class="gray-btn" onclick="refreshCurrent()">
+        <span id="refreshText">새로고침</span>
+      </button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="reports"
+        onclick="switchTab('reports')">생활기술 제보</button>
+      <button class="tab-btn" data-tab="ideas"
+        onclick="switchTab('ideas')">미래 기술 제안</button>
+      <button class="tab-btn" data-tab="analyses"
+        onclick="switchTab('analyses')">AI 분석 검토</button>
+      <button class="tab-btn" data-tab="surveyResponses"
+        onclick="switchTab('surveyResponses')">기술 빈틈 설문 응답</button>
+      <button class="tab-btn" data-tab="surveyManagement"
+        onclick="switchTab('surveyManagement')">설문 관리</button>
+    </div>
+
+    <div class="filters">
+      <input id="searchInput" type="search"
+        placeholder="제목, 지역, 분야 검색"
+        oninput="renderCurrent()">
+      <select id="statusFilter" onchange="renderCurrent()">
+        <option value="">전체 상태</option>
+        <option value="검토 중">검토 중</option>
+        <option value="승인">승인</option>
+        <option value="반려">반려</option>
+      </select>
+    </div>
+
+    <div id="surveyAnalytics" class="survey-analytics" style="display:none"></div>
+
+    <div class="table-wrap" id="mainTableWrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td class="empty">자료를 불러오는 중입니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section id="surveyManagementPanel" class="hidden" style="padding:18px 0">
+      <div class="panel-heading"><h2>검토 대기 설문 의뢰</h2><button class="gray-btn" onclick="loadSurveyManagement()">새로고침</button></div>
+      <div id="surveyRequestList" class="survey-admin-list"></div>
+      <div class="panel-heading" style="margin-top:28px"><h2 id="surveyEditorHeading">설문 제작 및 수정</h2></div>
+      <form id="surveyEditorForm" class="survey-editor">
+        <input type="hidden" id="editSurveyId"><input type="hidden" id="surveyRequestId">
+        <label>설문 제목<input id="surveyTitleInput" maxlength="160" required></label>
+        <label>분류<input id="surveyCategoryInput" maxlength="80" value="시민 설문" required></label>
+        <label>설명<textarea id="surveyDescriptionInput" maxlength="500" required></textarea></label>
+        <div class="survey-date-grid"><label>시작 일시<input id="surveyStartInput" type="datetime-local" required></label><label>종료 일시<input id="surveyEndInput" type="datetime-local" required></label></div>
+        <label>문항 JSON<textarea id="surveyQuestionsInput" rows="12" required spellcheck="false">[
+  {"id":"q1","type":"single","title":"질문을 입력해 주세요.","required":true,"options":["선택지 1","선택지 2"]}
+]</textarea></label>
+        <p class="hint">문항 유형: single(단일 선택), multiple(복수 선택), text(짧은 답변), textarea(긴 답변). 선택형 문항은 선택지를 2개 이상 입력해야 합니다.</p>
+        <div class="actions"><button class="green-btn" type="submit" id="surveySaveButton">설문 공개</button><button class="gray-btn" type="button" onclick="resetSurveyEditor()">입력 초기화</button></div>
+        <p id="surveyEditorStatus" class="hint" role="status"></p>
+      </form>
+      <div class="panel-heading" style="margin-top:30px"><h2>등록된 설문</h2></div><div id="publishedSurveyAdminList" class="survey-admin-list"></div>
+    </section>
+  </section>
+</main>
+
+<div class="modal" id="detailModal" onclick="modalBackground(event)">
+  <div class="modal-card">
+    <div class="modal-heading">
+      <h2 id="detailTitle">상세 정보</h2>
+      <button class="modal-close" onclick="closeModal()">닫기</button>
+    </div>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="gray-btn" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// =============================================
+// Supabase 설정
+// =============================================
+
+const SUPABASE_URL = "https://xudiglumqhythwhjizyh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1ZGlnbHVtcWh5dGh3aGppenloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNDQyNTQsImV4cCI6MjEwODYyMDI1NH0.I2OGouuR-TFjXsteUTOunjeWf__DIhGy69NFQ94KFs8";
+
+// =============================================
+// 상태
+// =============================================
+
+let currentTab = "reports";
+let reports = [];
+let ideas = [];
+let analyses = [];
+let surveyResponses = [];
+let surveyRequests = [];
+let techSurveys = [];
+let currentAdmin = null;
+
+const $ = (id) => document.getElementById(id);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("ko-KR");
+}
+
+function toast(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+  setTimeout(() => $("toast").classList.remove("show"), 2800);
+}
+
+function setError(message = "") {
+  $("errorBox").textContent = message;
+}
+
+// =====================================================
+// 기술의 빈틈 찾기 프로젝트 - 관리자 페이지 스크립트
+// ID/PW 관리자 인증 방식
+// =====================================================
+
+// -----------------------------------------------------
+// 1. 관리자 인증 설정
+// -----------------------------------------------------
+
+const ADMIN_TOKEN_KEY = "techGapAdminToken";
+
+// 아래 두 값은 기존 프로젝트의 실제 설정을 사용해야 함
+// SUPABASE_URL
+// SUPABASE_ANON_KEY
+
+// -----------------------------------------------------
+// 2. 관리자 토큰 관리
+// -----------------------------------------------------
+
+function getAdminToken() {
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY);
+}
+
+// -----------------------------------------------------
+// 3. Edge Function 호출
+// -----------------------------------------------------
+
+async function callAdmin(action, extra = {}) {
+  const token = getAdminToken();
+
+  if (action !== "login" && !token) {
+    throw new Error("관리자 로그인이 필요합니다.");
+  }
+
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/tech-gap-admin`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${token || SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        action,
+        ...extra
+      })
+    }
+  );
+
+  let data;
+
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error("서버 응답을 읽을 수 없습니다.");
+  }
+
+  if (!response.ok || data?.error) {
+    throw new Error(
+      data?.error || `서버 요청 실패 (${response.status})`
+    );
+  }
+
+  return data;
+}
+
+// -----------------------------------------------------
+// 4. 관리자 로그인
+// -----------------------------------------------------
+
+$("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  setError("");
+
+  const adminId = $("adminId").value.trim();
+  const password = $("password").value;
+  const loginButton = $("loginBtn");
+
+  if (!adminId || !password) {
+    setError("관리자 ID와 비밀번호를 입력해 주세요.");
+    return;
+  }
+
+  loginButton.disabled = true;
+  loginButton.textContent = "인증 중...";
+
+  try {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    const result = await callAdmin("login", {
+      adminId,
+      password
+    });
+
+    if (!result?.token) {
+      throw new Error("관리자 인증 토큰을 발급받지 못했습니다.");
+    }
+
+    sessionStorage.setItem(
+      ADMIN_TOKEN_KEY,
+      result.token
+    );
+
+    $("password").value = "";
+
+    await verifyAdminAndLoad();
+
+    toast("관리자 로그인에 성공했습니다.");
+
+  } catch (error) {
+    console.error("관리자 로그인 오류:", error);
+
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    currentAdmin = null;
+
+    $("adminSection").classList.add("hidden");
+    $("loginSection").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+
+    $("password").value = "";
+
+    setError(
+      error.message || "관리자 로그인에 실패했습니다."
+    );
+
+  } finally {
+    loginButton.disabled = false;
+    loginButton.textContent = "로그인";
+  }
+});
+
+// -----------------------------------------------------
+// 5. 관리자 인증 및 대시보드 표시
+// -----------------------------------------------------
+
+async function verifyAdminAndLoad() {
+  if (!getAdminToken()) {
+    throw new Error("관리자 로그인이 필요합니다.");
+  }
+
+  let authResult;
+  try {
+    // 이 요청이 성공하면 관리자 인증은 완료된 것입니다.
+    authResult = await callAdmin("dashboard");
+  } catch (error) {
+    console.error("관리자 인증 확인 실패:", error);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    currentAdmin = null;
+    $("adminSection").classList.add("hidden");
+    $("loginSection").classList.remove("hidden");
+    $("logoutBtn").classList.add("hidden");
+    throw error;
+  }
+
+  currentAdmin = authResult.adminName || "관리자";
+  $("adminName").textContent = currentAdmin + "님";
+  $("loginSection").classList.add("hidden");
+  $("adminSection").classList.remove("hidden");
+  $("logoutBtn").classList.remove("hidden");
+
+  // 인증 성공 이후의 데이터 조회 오류는 로그인 실패로 처리하지 않습니다.
+  try {
+    await loadDashboard(authResult.stats || {});
+  } catch (error) {
+    console.error("대시보드 통계 조회 실패:", error);
+    toast("로그인은 성공했지만 통계를 불러오지 못했습니다: " + error.message);
+  }
+
+  try {
+    await loadAllData();
+  } catch (error) {
+    console.error("관리자 자료 조회 실패:", error);
+    toast("로그인은 성공했지만 일부 자료를 불러오지 못했습니다: " + error.message);
+  }
+}
+
+// -----------------------------------------------------
+// 6. 로그아웃
+// -----------------------------------------------------
+
+async function logout() {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+  currentAdmin = null;
+
+  reports = [];
+  ideas = [];
+  analyses = [];
+  surveyResponses = [];
+  surveyRequests = [];
+  techSurveys = [];
+
+  $("adminSection").classList.add("hidden");
+  $("loginSection").classList.remove("hidden");
+  $("logoutBtn").classList.add("hidden");
+
+  $("adminName").textContent = "";
+  $("adminId").value = "";
+  $("password").value = "";
+
+  $("tableHead").innerHTML = "";
+  $("tableBody").innerHTML = "";
+
+  setError("");
+
+  toast("로그아웃되었습니다.");
+}
+
+// -----------------------------------------------------
+// 7. 기존 관리자 세션 확인
+// -----------------------------------------------------
+
+async function checkExistingSession() {
+  if (!getAdminToken()) {
+    $("loginSection").classList.remove("hidden");
+    $("adminSection").classList.add("hidden");
+    $("logoutBtn").classList.add("hidden");
+    return;
+  }
+
+  try {
+    await verifyAdminAndLoad();
+
+  } catch (error) {
+    console.error("기존 세션 확인 실패:", error);
+
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+    $("loginSection").classList.remove("hidden");
+    $("adminSection").classList.add("hidden");
+    $("logoutBtn").classList.add("hidden");
+  }
+}
+
+// -----------------------------------------------------
+// 8. 대시보드 통계 불러오기
+// -----------------------------------------------------
+
+async function loadDashboard(preloadedStats = null) {
+  const result = preloadedStats
+    ? { stats: preloadedStats }
+    : await callAdmin("dashboard");
+  const stats = result.stats || {};
+
+  $("statReports").textContent = stats.reportsPending ?? 0;
+  $("statIdeas").textContent = stats.ideasPending ?? 0;
+  $("statReportsApproved").textContent = stats.reportsApproved ?? 0;
+  $("statIdeasApproved").textContent = stats.ideasApproved ?? 0;
+  $("statSurveyRequests").textContent = stats.surveyRequestsPending ?? 0;
+}
+
+// -----------------------------------------------------
+// 9. 전체 자료 불러오기
+// -----------------------------------------------------
+
+async function loadAllData() {
+  const requests = await Promise.allSettled([
+    callAdmin("list_reports"),
+    callAdmin("list_ideas"),
+    callAdmin("list_analyses"),
+    callAdmin("list_tech_survey_responses"),
+    callAdmin("list_tech_survey_requests"),
+    callAdmin("list_tech_surveys")
+  ]);
+
+  const labels = ["제보 목록", "기술 제안 목록", "AI 분석 목록", "설문 응답 목록", "설문 의뢰 목록", "등록 설문 목록"];
+  const failures = [];
+
+  if (requests[0].status === "fulfilled") reports = requests[0].value.data || [];
+  else failures.push(labels[0] + ": " + requests[0].reason.message);
+
+  if (requests[1].status === "fulfilled") ideas = requests[1].value.data || [];
+  else failures.push(labels[1] + ": " + requests[1].reason.message);
+
+  if (requests[2].status === "fulfilled") analyses = requests[2].value.data || [];
+  else failures.push(labels[2] + ": " + requests[2].reason.message);
+
+  if (requests[3].status === "fulfilled") surveyResponses = requests[3].value.data || [];
+  else failures.push(labels[3] + ": " + requests[3].reason.message);
+  if (requests[4].status === "fulfilled") surveyRequests = requests[4].value.data || [];
+  else failures.push(labels[4] + ": " + requests[4].reason.message);
+  if (requests[5].status === "fulfilled") techSurveys = requests[5].value.data || [];
+  else failures.push(labels[5] + ": " + requests[5].reason.message);
+
+  renderCurrent();
+  renderSurveyManagement();
+
+  if (failures.length) {
+    console.error("자료 조회 중 일부 오류:", failures);
+    toast("일부 자료 조회 실패: " + failures.join(" / "));
+  }
+}
+
+// -----------------------------------------------------
+// 10. 새로고침
+// -----------------------------------------------------
+
+async function refreshCurrent() {
+  $("refreshText").textContent = "불러오는 중...";
+
+  try {
+    await loadDashboard();
+    await loadAllData();
+
+    toast("자료를 새로고침했습니다.");
+
+  } catch (error) {
+    toast("새로고침 실패: " + error.message);
+
+  } finally {
+    $("refreshText").textContent = "새로고침";
+  }
+}
+
+// -----------------------------------------------------
+// 11. 탭 전환
+// -----------------------------------------------------
+
+function switchTab(tab) {
+  currentTab = tab;
+
+  document.querySelectorAll(".tab-btn").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.tab === tab
+    );
+  });
+
+  $("statusFilter").classList.toggle(
+    "hidden",
+    tab === "analyses" || tab === "surveyResponses" || tab === "surveyManagement"
+  );
+  $("searchInput").classList.toggle("hidden", tab === "surveyManagement");
+  $("mainTableWrap").classList.toggle("hidden", tab === "surveyManagement");
+  $("surveyManagementPanel").classList.toggle("hidden", tab !== "surveyManagement");
+  $("surveyAnalytics").style.display = tab === "surveyResponses" ? "block" : "none";
+
+  $("statusFilter").value = "";
+  $("searchInput").value = "";
+
+  renderCurrent();
+}
+
+function getCurrentData() {
+  if (currentTab === "reports") return reports;
+  if (currentTab === "ideas") return ideas;
+  if (currentTab === "analyses") return analyses;
+  if (currentTab === "surveyResponses") return surveyResponses;
+  return [];
+}
+
+// -----------------------------------------------------
+// 12. 상태 표시
+// -----------------------------------------------------
+
+function getStatusClass(status) {
+  if (status === "승인" || status === "검토 완료") {
+    return "approved";
+  }
+
+  if (status === "반려" || status === "재분석 필요") {
+    return "rejected";
+  }
+
+  return "";
+}
+
+// -----------------------------------------------------
+// 13. 현재 목록 렌더링
+// -----------------------------------------------------
+
+function renderCurrent() {
+  if (currentTab === "surveyManagement") { renderSurveyManagement(); return; }
+  const data = getCurrentData();
+
+  const keyword = $("searchInput").value
+    .trim()
+    .toLowerCase();
+
+  const status = $("statusFilter").value;
+
+  const filtered = data.filter((item) => {
+    const text = [
+      item.title,
+      item.region,
+      item.category,
+      item.summary,
+      item.issue_type,
+      item.technology_demand,
+      item.survey_title,
+      item.survey_id,
+      JSON.stringify(item.answers || [])
+    ].join(" ").toLowerCase();
+
+    const matchesKeyword =
+      !keyword || text.includes(keyword);
+
+    const itemStatus =
+      currentTab === "analyses"
+        ? item.analysis_status
+        : item.status;
+
+    const matchesStatus =
+      !status || itemStatus === status;
+
+    return matchesKeyword && matchesStatus;
+  });
+
+  if (currentTab === "reports") {
+    renderReports(filtered);
+  } else if (currentTab === "ideas") {
+    renderIdeas(filtered);
+  } else if (currentTab === "analyses") {
+    renderAnalyses(filtered);
+  } else {
+    renderSurveyAnalytics(filtered);
+    renderSurveyResponses(filtered);
+  }
+}
+
+// -----------------------------------------------------
+// 14. 제보 목록
+// -----------------------------------------------------
+
+function renderReports(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>제보 제목</th>
+      <th>지역</th>
+      <th>분야</th>
+      <th>제보 유형</th>
+      <th>상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td><strong>${escapeHTML(item.title)}</strong></td>
+        <td>${escapeHTML(item.region || "-")}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>${escapeHTML(item.report_type || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.status)}">
+            ${escapeHTML(item.status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('report','${escapeHTML(item.id)}')">
+              상세
+            </button>
+            ${postActionButtons("report", item)}
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="7" class="empty">등록된 제보가 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 15. 기술 제안 목록
+// -----------------------------------------------------
+
+function renderIdeas(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>제안 제목</th>
+      <th>지역</th>
+      <th>분야</th>
+      <th>상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td><strong>${escapeHTML(item.title)}</strong></td>
+        <td>${escapeHTML(item.region || "-")}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.status)}">
+            ${escapeHTML(item.status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('idea','${escapeHTML(item.id)}')">
+              상세
+            </button>
+            ${postActionButtons("idea", item)}
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="6" class="empty">등록된 기술 제안이 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 16. AI 분석 목록
+// -----------------------------------------------------
+
+function renderAnalyses(data) {
+  $("tableHead").innerHTML = `
+    <tr>
+      <th>대상 유형</th>
+      <th>AI 요약</th>
+      <th>분류</th>
+      <th>분석 상태</th>
+      <th>등록일</th>
+      <th>관리</th>
+    </tr>
+  `;
+
+  $("tableBody").innerHTML = data.length
+    ? data.map((item) => `
+      <tr>
+        <td>${escapeHTML(item.target_type || "-")}</td>
+        <td>${escapeHTML(item.summary || "-").slice(0, 75)}</td>
+        <td>${escapeHTML(item.category || "-")}</td>
+        <td>
+          <span class="status ${getStatusClass(item.analysis_status)}">
+            ${escapeHTML(item.analysis_status)}
+          </span>
+        </td>
+        <td>${escapeHTML(formatDate(item.created_at))}</td>
+        <td>
+          <div class="actions">
+            <button class="blue-btn"
+              onclick="showDetail('analysis','${escapeHTML(item.id)}')">
+              상세
+            </button>
+
+            <button class="green-btn"
+              onclick="reviewAnalysis('${escapeHTML(item.id)}','검토 완료')">
+              검토 완료
+            </button>
+
+            <button class="red-btn"
+              onclick="reviewAnalysis('${escapeHTML(item.id)}','재분석 필요')">
+              재분석
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="6" class="empty">AI 분석 기록이 없습니다.</td></tr>`;
+}
+
+// -----------------------------------------------------
+// 설문 결과 통계 및 문항별 막대그래프
+// -----------------------------------------------------
+
+function renderSurveyAnalytics(data) {
+  const host = $("surveyAnalytics");
+  if (!host) return;
+  const all = Array.isArray(data) ? data : [];
+  const surveyGroups = new Map();
+  all.forEach(row => {
+    const key = String(row.survey_id || "unknown");
+    if (!surveyGroups.has(key)) surveyGroups.set(key, { id:key, title:row.survey_title || key, rows:[] });
+    surveyGroups.get(key).rows.push(row);
+  });
+
+  if (!surveyGroups.size) {
+    host.innerHTML = `<div class="survey-question-chart"><h3>설문 결과 분석</h3><p class="survey-empty">아직 집계할 설문 응답이 없습니다. 응답이 제출되면 문항별 통계가 여기에 표시됩니다.</p></div>`;
+    return;
+  }
+
+  const sections = [];
+  for (const group of surveyGroups.values()) {
+    const questionMap = new Map();
+    group.rows.forEach(row => {
+      (Array.isArray(row.answers) ? row.answers : []).forEach(answer => {
+        const qid = String(answer.questionId || answer.question || "question");
+        if (!questionMap.has(qid)) questionMap.set(qid, {
+          title: answer.question || qid,
+          type: answer.type || "text",
+          options: Array.isArray(answer.options) ? answer.options : [],
+          values: []
+        });
+        const q = questionMap.get(qid);
+        if ((!q.options || !q.options.length) && Array.isArray(answer.options)) q.options = answer.options;
+        const value = answer.value;
+        if (Array.isArray(value)) value.forEach(v => { if (String(v).trim()) q.values.push(String(v)); });
+        else if (String(value ?? "").trim()) q.values.push(String(value));
+      });
+    });
+
+    const charts = [];
+    for (const q of questionMap.values()) {
+      if (q.type === "single" || q.type === "multiple") {
+        const choices = [...q.options];
+        q.values.forEach(value => { if (!choices.includes(value)) choices.push(value); });
+        const counts = choices.map(choice => ({ label:choice, count:q.values.filter(v => v === choice).length }));
+        const denominator = group.rows.length;
+        const rows = counts.map(item => {
+          const pct = denominator ? (item.count / denominator * 100) : 0;
+          return `<div class="survey-bar-row"><div class="survey-bar-label">${escapeHTML(item.label)}</div><div class="survey-bar-track"><div class="survey-bar-fill" style="width:${Math.min(100,pct)}%"></div></div><div class="survey-bar-value">${item.count}명 · ${pct.toFixed(1)}%</div></div>`;
+        }).join("");
+        charts.push(`<div class="survey-question-chart"><h4>${escapeHTML(q.title)}</h4><div class="survey-question-meta">${q.type === "multiple" ? "복수 선택 · 응답자 대비 선택 비율" : "단일 선택 · 전체 응답자 대비 비율"}</div>${rows || '<p class="survey-empty">응답 데이터가 없습니다.</p>'}</div>`);
+      } else {
+        const texts = q.values.slice(0, 100).map((value, i) => `<div class="survey-text-answer"><strong>${i+1}.</strong> ${escapeHTML(value)}</div>`).join("");
+        charts.push(`<div class="survey-question-chart"><h4>${escapeHTML(q.title)}</h4><div class="survey-question-meta">주관식 응답 ${q.values.length}건</div>${texts || '<p class="survey-empty">작성된 주관식 응답이 없습니다.</p>'}${q.values.length > 100 ? `<p class="survey-empty">화면에는 최근 집계 중 최대 100개까지 표시합니다.</p>` : ""}</div>`);
+      }
+    }
+    sections.push(`<section class="survey-analysis-group"><div class="survey-analytics-header"><h3>${escapeHTML(group.title)}</h3><span class="status">응답 ${group.rows.length}건</span></div><div class="survey-summary-grid"><div class="survey-summary-card"><span>총 응답 수</span><strong>${group.rows.length}</strong></div><div class="survey-summary-card"><span>설문 문항 수</span><strong>${questionMap.size}</strong></div><div class="survey-summary-card"><span>최근 응답</span><strong style="font-size:14px">${escapeHTML(formatDate(group.rows[0]?.submitted_at))}</strong></div></div>${charts.join("")}</section>`);
+  }
+  host.innerHTML = `<div class="survey-analytics-header"><h3>설문 결과 분석</h3><span class="survey-question-meta">객관식은 응답 수와 비율, 주관식은 제출된 답변을 표시합니다.</span></div>${sections.join("")}`;
+}
+
+// -----------------------------------------------------
+// 설문 응답 목록
+// -----------------------------------------------------
+
+function renderSurveyResponses(data) {
+  $("tableHead").innerHTML = `<tr><th>설문별 응답 목록</th></tr>`;
+  const groups = new Map();
+  for (const item of data) {
+    const key = String(item.survey_id || "unknown");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  const html = Array.from(groups.entries()).map(([surveyId, rows]) => {
+    const responsesHTML = rows.map((item, index) => {
+      const answers = (Array.isArray(item.answers) ? item.answers : []).map((answer, i) => {
+        const value = Array.isArray(answer.value) ? answer.value.join(", ") : String(answer.value ?? "");
+        return `<p><strong>${i + 1}. ${escapeHTML(answer.question || answer.questionId || "문항")}</strong><br>${escapeHTML(value || "(무응답)")}</p>`;
+      }).join("");
+      return `<article class="survey-response-item"><strong>응답 ${index + 1}</strong><p>제출일: ${escapeHTML(formatDate(item.submitted_at))}</p>${answers}</article>`;
+    }).join("");
+    return `<tr><td><details class="survey-response-group"><summary>${escapeHTML(rows[0]?.survey_title || "제목 없음")} · ${rows.length}건 · ${escapeHTML(surveyId)}</summary>${responsesHTML}</details></td></tr>`;
+  }).join("");
+  $("tableBody").innerHTML = html || `<tr><td class="empty">제출된 기술 빈틈 설문 응답이 없습니다.</td></tr>`;
+}
+
+function renderSurveyManagement() {
+  const requestBox = $("surveyRequestList"), surveyBox = $("publishedSurveyAdminList");
+  if (!requestBox || !surveyBox) return;
+  const pending = surveyRequests.filter(x => x.status === "검토 중");
+  requestBox.innerHTML = pending.length ? pending.map(item => `<article class="survey-admin-card"><h3>${escapeHTML(item.survey_title || "제목 없음")}</h3><p>의뢰인: ${escapeHTML(item.requester_name || "-")} · ${escapeHTML(item.organization || "개인")}</p><p>회신: ${escapeHTML(item.email || "-")} · 희망 기간: ${escapeHTML(item.desired_period || "미정")}</p><p>목적: ${escapeHTML(item.purpose || "-")}</p><div class="actions"><button class="blue-btn" onclick="prepareSurveyFromRequest('${escapeHTML(item.id)}')">설문 제작</button><button class="red-btn" onclick="rejectSurveyRequest('${escapeHTML(item.id)}')">의뢰 거부</button></div></article>`).join("") : `<p class="empty">검토 대기 중인 설문 의뢰가 없습니다.</p>`;
+  surveyBox.innerHTML = techSurveys.length ? techSurveys.map(item => `<article class="survey-admin-card"><h3>${escapeHTML(item.survey_title || "제목 없음")}</h3><p>${escapeHTML(item.description || "")}</p><p>상태: ${escapeHTML(item.status || (item.is_published ? "공개" : "비공개"))} · 기간: ${escapeHTML(formatDate(item.start_at))} ~ ${escapeHTML(formatDate(item.end_at))}</p><p>문항 ${Array.isArray(item.questions) ? item.questions.length : 0}개 · ID ${escapeHTML(item.id)}</p><div class="actions"><button class="blue-btn" onclick="editTechSurvey('${escapeHTML(item.id)}')">수정</button>${item.is_published ? `<button class="red-btn" onclick="hideTechSurvey('${escapeHTML(item.id)}')">비공개·삭제</button>` : `<span class="hint">비공개 처리됨</span>`}</div></article>`).join("") : `<p class="empty">등록된 설문이 없습니다.</p>`;
+}
+async function loadSurveyManagement() {
+  try { const [r,s] = await Promise.all([callAdmin("list_tech_survey_requests"),callAdmin("list_tech_surveys")]); surveyRequests=r.data||[]; techSurveys=s.data||[]; renderSurveyManagement(); await loadDashboard(); }
+  catch(error) { toast("설문 목록 조회 실패: "+error.message); }
+}
+function prepareSurveyFromRequest(id) {
+  const item=surveyRequests.find(x=>String(x.id)===String(id)); if(!item)return; resetSurveyEditor();
+  $("surveyRequestId").value=item.id; $("surveyTitleInput").value=item.survey_title||""; $("surveyCategoryInput").value=item.target_audience||"시민 설문"; $("surveyDescriptionInput").value=item.purpose||"";
+  const now=new Date(), end=new Date(now.getTime()+7*86400000), local=v=>new Date(v.getTime()-v.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  $("surveyStartInput").value=local(now); $("surveyEndInput").value=local(end);
+  if(item.requested_questions) $("surveyQuestionsInput").value=JSON.stringify(String(item.requested_questions).split(/\r?\n/).filter(Boolean).map((title,i)=>({id:`q${i+1}`,type:"textarea",title,required:false,options:[]})),null,2);
+  $("surveyEditorHeading").textContent="의뢰 기반 설문 제작"; $("surveyEditorStatus").textContent="문항 JSON을 확인하고 공개를 눌러 주세요."; $("surveyEditorForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function editTechSurvey(id) {
+  const item=techSurveys.find(x=>String(x.id)===String(id)); if(!item)return;
+  $("editSurveyId").value=item.id; $("surveyRequestId").value=""; $("surveyTitleInput").value=item.survey_title||""; $("surveyCategoryInput").value=item.target_audience||"시민 설문"; $("surveyDescriptionInput").value=item.description||"";
+  const local=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?"":new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
+  $("surveyStartInput").value=local(item.start_at); $("surveyEndInput").value=local(item.end_at); $("surveyQuestionsInput").value=JSON.stringify(item.questions||[],null,2);
+  $("surveyEditorHeading").textContent="공개 설문 수정"; $("surveySaveButton").textContent="수정 내용 저장"; $("surveyEditorForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function resetSurveyEditor() {
+  $("surveyEditorForm").reset(); $("editSurveyId").value=""; $("surveyRequestId").value=""; $("surveyCategoryInput").value="시민 설문";
+  $("surveyQuestionsInput").value='[\n  {"id":"q1","type":"single","title":"질문을 입력해 주세요.","required":true,"options":["선택지 1","선택지 2"]}\n]';
+  $("surveyEditorHeading").textContent="설문 제작 및 수정"; $("surveySaveButton").textContent="설문 공개"; $("surveyEditorStatus").textContent="";
+}
+$("surveyEditorForm").addEventListener("submit",async event=>{
+  event.preventDefault(); const status=$("surveyEditorStatus"); let questions;
+  try{questions=JSON.parse($("surveyQuestionsInput").value)}catch(_){status.textContent="문항 JSON 형식이 올바르지 않습니다.";return}
+  const editing=Boolean($("editSurveyId").value); const startAt=new Date($("surveyStartInput").value),endAt=new Date($("surveyEndInput").value);
+  if(!Number.isFinite(startAt.getTime())||!Number.isFinite(endAt.getTime())){status.textContent="설문 기간을 확인해 주세요.";return}
+  const payload={id:$("editSurveyId").value,requestId:$("surveyRequestId").value,title:$("surveyTitleInput").value.trim(),category:$("surveyCategoryInput").value.trim(),description:$("surveyDescriptionInput").value.trim(),startAt:startAt.toISOString(),endAt:endAt.toISOString(),questions};
+  if(!editing&&!payload.requestId){status.textContent="먼저 설문 의뢰에서 제작을 선택해 주세요.";return}
+  const button=$("surveySaveButton");button.disabled=true;status.textContent="저장 중...";
+  try{await callAdmin(editing?"update_tech_survey":"publish_tech_survey_request",payload);status.textContent=editing?"설문 수정이 저장되었습니다.":"설문이 공개되었습니다.";await loadSurveyManagement();await loadAllData();resetSurveyEditor()}
+  catch(error){status.textContent="저장 실패: "+error.message}finally{button.disabled=false}
+});
+async function rejectSurveyRequest(id){const note=prompt("거부 사유를 입력해 주세요.","검토 결과 설문 제작이 어렵습니다.");if(note===null)return;try{await callAdmin("update_tech_survey_request_status",{id,status:"거부",adminNote:note});await loadSurveyManagement();toast("설문 의뢰를 거부 처리했습니다.")}catch(error){toast("처리 실패: "+error.message)}}
+async function hideTechSurvey(id){if(!confirm("설문을 비공개 처리할까요? 기존 응답은 삭제되지 않습니다."))return;try{await callAdmin("delete_tech_survey",{id});await loadSurveyManagement();toast("설문을 비공개 처리했습니다.")}catch(error){toast("처리 실패: "+error.message)}}
+
+function showSurveyResponse(id) {
+  const item = surveyResponses.find(x => String(x.id) === String(id));
+  if (!item) {
+    toast("설문 응답을 찾을 수 없습니다.");
+    return;
+  }
+
+  const answers = Array.isArray(item.answers) ? item.answers : [];
+  const answerHTML = answers.map((answer, index) => {
+    const value = Array.isArray(answer.value)
+      ? answer.value.join(", ")
+      : String(answer.value ?? "");
+    return `
+      <div class="detail-item" style="margin-bottom:10px">
+        <small>${index + 1}. ${escapeHTML(answer.question || answer.questionId || "문항")}</small>
+        <div class="detail">${escapeHTML(value || "(무응답)")}</div>
+      </div>
+    `;
+  }).join("");
+
+  $("detailTitle").textContent = "기술 빈틈 설문 응답 상세";
+  $("detailContent").innerHTML = `
+    <div class="detail-grid">
+      ${detailField("설문 제목", item.survey_title)}
+      ${detailField("설문 ID", item.survey_id)}
+      ${detailField("제출일", formatDate(item.submitted_at))}
+    </div>
+    <h3 style="margin:20px 0 12px">응답 내용</h3>
+    ${answerHTML || '<p class="empty">응답 내용이 없습니다.</p>'}
+  `;
+  $("detailModal").classList.add("show");
+}
+
+// -----------------------------------------------------
+// 17. 제보 및 제안 관리 버튼
+// -----------------------------------------------------
+
+function postActionButtons(type, item) {
+  if (item.status === "검토 중") {
+    return `
+      <button class="green-btn"
+        onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','승인')">
+        승인
+      </button>
+
+      <button class="red-btn"
+        onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','반려')">
+        반려
+      </button>
+    `;
+  }
+
+  return `
+    <button class="gray-btn"
+      onclick="updatePostStatus('${type}','${escapeHTML(item.id)}','검토 중')">
+      재검토
+    </button>
+  `;
+}
+
+// -----------------------------------------------------
+// 18. 게시물 상태 변경
+// -----------------------------------------------------
+
+async function updatePostStatus(type, id, status) {
+  const typeName =
+    type === "report" ? "제보" : "기술 제안";
+
+  if (!confirm(
+    `${typeName} 상태를 '${status}'(으)로 변경할까요?`
+  )) {
+    return;
+  }
+
+  try {
+    await callAdmin("update_post_status", {
+      type,
+      id,
+      status
+    });
+
+    toast("상태가 변경되었습니다.");
+
+    await loadDashboard();
+    await loadAllData();
+
+  } catch (error) {
+    toast("상태 변경 실패: " + error.message);
+  }
+}
+
+// -----------------------------------------------------
+// 19. AI 분석 검토
+// -----------------------------------------------------
+
+async function reviewAnalysis(id, status) {
+  const message =
+    status === "검토 완료"
+      ? "이 AI 분석 결과를 검토 완료 처리할까요?"
+      : "이 분석을 재분석 대상으로 표시할까요?";
+
+  if (!confirm(message)) return;
+
+  try {
+    await callAdmin("review_analysis", {
+      id,
+      status
+    });
+
+    toast("AI 분석 상태가 변경되었습니다.");
+
+    await loadDashboard();
+    await loadAllData();
+
+  } catch (error) {
+    toast("변경 실패: " + error.message);
+  }
+}
+
+// -----------------------------------------------------
+// 20. 상세 정보 필드
+// -----------------------------------------------------
+
+function detailField(label, value) {
+  return `
+    <div class="detail-item">
+      <small>${escapeHTML(label)}</small>
+      <div class="detail">
+        ${escapeHTML(value ?? "-")}
+      </div>
+    </div>
+  `;
+}
+
+// -----------------------------------------------------
+// 21. 상세 정보 모달
+// -----------------------------------------------------
+
+function showDetail(type, id) {
+  let item;
+
+  if (type === "report") {
+    item = reports.find(
+      (x) => String(x.id) === String(id)
+    );
+  } else if (type === "idea") {
+    item = ideas.find(
+      (x) => String(x.id) === String(id)
+    );
+  } else {
+    item = analyses.find(
+      (x) => String(x.id) === String(id)
+    );
+  }
+
+  if (!item) {
+    toast("자료를 찾을 수 없습니다.");
+    return;
+  }
+
+  let fields = "";
+
+  if (type === "report") {
+    $("detailTitle").textContent = "생활기술 제보 상세";
+
+    fields = [
+      detailField("제목", item.title),
+      detailField("지역", item.region),
+      detailField("분야", item.category),
+      detailField("제보 유형", item.report_type),
+      detailField("문제 상황", item.situation),
+      detailField("기존 기술 및 서비스", item.existing_technology),
+      detailField("개선 필요 사항", item.improvement),
+      detailField("공개 여부", item.is_public ? "공개" : "비공개"),
+      detailField("상태", item.status),
+      detailField("등록일", formatDate(item.created_at))
+    ].join("");
+
+    if (item.image_url) {
+      fields += `
+        <div class="detail-item" style="margin-top:13px">
+          <small>첨부 이미지</small>
+          <img
+            src="${escapeHTML(item.image_url)}"
+            alt="제보 첨부 이미지"
+            style="max-width:100%;max-height:300px;object-fit:contain"
+          >
+        </div>
+      `;
+    }
+
+  } else if (type === "idea") {
+    $("detailTitle").textContent = "미래 기술 제안 상세";
+
+    fields = [
+      detailField("제목", item.title),
+      detailField("지역", item.region),
+      detailField("분야", item.category),
+      detailField("문제 상황", item.problem_description),
+      detailField("기술 개념", item.technology_concept),
+      detailField("기대 효과", item.expected_effect),
+      detailField("상태", item.status),
+      detailField("등록일", formatDate(item.created_at))
+    ].join("");
+
+  } else {
+    $("detailTitle").textContent = "AI 분석 상세";
+
+    fields = [
+      detailField("분석 대상 유형", item.target_type),
+      detailField("대상 ID", item.target_id),
+      detailField("분야", item.category),
+      detailField("문제 유형", item.issue_type),
+      detailField("AI 요약", item.summary),
+      detailField("유사 제보 그룹", item.similar_group),
+      detailField("기술 수요", item.technology_demand),
+      detailField(
+        "권고 사항",
+        JSON.stringify(item.recommendations || [], null, 2)
+      ),
+      detailField("신뢰도", item.confidence),
+      detailField("사용 모델", item.model),
+      detailField("검토 상태", item.analysis_status),
+      detailField("분석일", formatDate(item.created_at))
+    ].join("");
+  }
+
+  $("detailContent").innerHTML =
+    `<div class="detail-grid">${fields}</div>`;
+
+  $("detailModal").classList.add("show");
+}
+
+// -----------------------------------------------------
+// 22. 모달 제어
+// -----------------------------------------------------
+
+function closeModal() {
+  $("detailModal").classList.remove("show");
+}
+
+function modalBackground(event) {
+  if (event.target.id === "detailModal") {
+    closeModal();
+  }
+}
+
+// -----------------------------------------------------
+// 23. 검색 및 필터 이벤트
+// -----------------------------------------------------
+
+$("searchInput").addEventListener("input", renderCurrent);
+$("statusFilter").addEventListener("change", renderCurrent);
+
+// -----------------------------------------------------
+// 24. 페이지 초기화
+// -----------------------------------------------------
+
+checkExistingSession();
+</script>
+</body>
+</html>
